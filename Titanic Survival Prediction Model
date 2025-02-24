@@ -1,0 +1,54 @@
+#importing necessary libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+#loading and printing the dataset
+dataset = pd.read_csv(r"C:\Users\Shagun jain\Downloads\Titanic-Dataset.csv")
+print(dataset)
+#selecting relevant features, handling missing values and encoding categorical variable
+features = ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare']
+dataset = dataset[features + ['Survived']]
+dataset['Age'].fillna(dataset['Age'].median(), inplace=True)
+dataset['Sex'] = LabelEncoder().fit_transform(dataset['Sex'])
+#split the data
+X = dataset[features]
+y = dataset['Survived']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+#training the logistic regression model
+model = LogisticRegression()
+model.fit(X_train, y_train)
+#make predictions
+y_pred = model.predict(X_test)
+#evaluate model
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Model Accuracy: {accuracy:.2f}")
+#important plots
+plt.figure(figsize=(6,4))
+sns.countplot(x='Survived', data=dataset, palette=['red', 'green'])
+plt.title("Survival Count (0 = No, 1 = Yes)")
+plt.show()
+plt.figure(figsize=(6,4))
+sns.barplot(x='Sex', y='Survived', data=dataset, ci=None)
+plt.xticks([0, 1], ['Female', 'Male'])
+plt.title("Survival Rate by Gender")
+plt.show()
+plt.figure(figsize=(6,4))
+sns.barplot(x='Pclass', y='Survived', data=dataset, ci=None, palette='coolwarm')
+plt.title("Survival Rate by Ticket Class")
+plt.show()
+plt.figure(figsize=(8,5))
+sns.histplot(dataset[dataset['Survived'] == 1]['Age'], bins=30, kde=True, color="green", label="Survived")
+sns.histplot(dataset[dataset['Survived'] == 0]['Age'], bins=30, kde=True, color="red", label="Not Survived")
+plt.title("Age Distribution: Survivors vs. Non-Survivors")
+plt.legend()
+plt.show()
+coef_dataset = pd.DataFrame({'Feature': features, 'Coefficient': model.coef_[0]})
+plt.figure(figsize=(6,4))
+sns.barplot(x='Coefficient', y='Feature', data=coef_dataset, palette='viridis')
+plt.title("Feature Importance (Logistic Regression Coefficients)")
+plt.show()
